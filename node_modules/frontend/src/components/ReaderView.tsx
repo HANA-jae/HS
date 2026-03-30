@@ -19,7 +19,7 @@ export function ReaderView({ result, onClear }: Props) {
   return (
     <article className="reader-view">
       <header className="reader-header">
-        <h1 className="reader-title">{result.title}</h1>
+        <h2 className="reader-title">{result.title}</h2>
         <div className="reader-meta">
           <span className="meta-item">
             <span className="meta-label">Source:</span>

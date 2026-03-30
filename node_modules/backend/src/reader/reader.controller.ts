@@ -12,6 +12,7 @@ export class ReaderController {
   @Post('fetch')
   @HttpCode(HttpStatus.OK)
   async fetch(@Body() dto: FetchUrlDto): Promise<ReaderResult> {
+    console.log(`[CONTROLLER] Received fetch request for URL: ${dto.url}`);
     this.logger.log(`Received fetch request for URL: ${dto.url}`);
     return this.readerService.fetchAndParse(dto.url);
   }

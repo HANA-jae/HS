@@ -1,11 +1,17 @@
 import axios from 'axios';
 import type { ReaderResult, ApiError } from '../types/reader';
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9001';
+
+console.log('[API Init] BASE_URL:', BASE_URL);
+console.log('[API Init] VITE_API_URL env var:', import.meta.env.VITE_API_URL);
 
 export async function fetchUrlContent(url: string): Promise<ReaderResult> {
   try {
-    const response = await axios.post<ReaderResult>(`${BASE_URL}/reader/fetch`, {
+    const endpoint = `${BASE_URL}/reader/fetch`;
+    console.log('[API] Sending request to:', endpoint);
+    console.log('[API] With URL:', url);
+    const response = await axios.post<ReaderResult>(endpoint, {
       url,
     });
     return response.data;
