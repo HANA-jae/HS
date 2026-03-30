@@ -100,7 +100,7 @@ export class ReaderService {
     try {
       const { chromium } = await import('playwright-core');
 
-      this.logger.debug(`Launching Playwright browser for ${url}...`);
+      this.logger.debug(`Launching Playwright browser for CF challenge at ${url}...`);
       const browser = await chromium.launch({
         headless: true,
         args: [
@@ -113,11 +113,13 @@ export class ReaderService {
       });
 
       try {
+        const userAgent =
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/124.0.0.0 Safari/537.36';
+
         const context = await browser.newContext({
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-            'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-            'Chrome/124.0.0.0 Safari/537.36',
+          userAgent,
           locale: 'ko-KR',
           extraHTTPHeaders: {
             'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -138,49 +140,98 @@ export class ReaderService {
 
         const page = await context.newPage();
 
-        this.logger.debug(`Navigating to ${url} with browser...`);
-
-        // Register a listener for navigation BEFORE goto
-        // This captures any Cloudflare redirect that happens after JS execution
-        const navigationPromise = page
-          .waitForNavigation({
-            waitUntil: 'domcontentloaded',
-            timeout: 30_000,
-          })
-          .catch(() => null); // Sites without CF challenge won't redirect
-
-        // Initial goto loads the page (may be CF challenge or actual content)
+        this.logger.debug(`Navigating to ${url}...`);
         await page.goto(url, {
           waitUntil: 'domcontentloaded',
           timeout: 30_000,
         });
 
-        // Wait for CF redirect to complete (if any)
-        // navigationPromise resolves when:
-        // - CF challenge is solved and redirects to actual page, OR
-        // - No redirect occurs (CF-free sites return null via catch)
-        this.logger.debug(`Waiting for Cloudflare redirect to complete...`);
-        await navigationPromise;
+        // Poll for cf_clearance cookie (sign of CF challenge completion)
+        this.logger.debug(`Waiting for Cloudflare challenge completion...`);
+        const POLL_INTERVAL = 500;
+        const MAX_WAIT = 25_000;
+        let elapsed = 0;
+        let cfCookie: { name: string; value: string } | null = null;
 
-        // Allow JS to finish rendering dynamic content after redirect
-        await page.waitForTimeout(1500);
+        while (!cfCookie && elapsed < MAX_WAIT) {
+          await page.waitForTimeout(POLL_INTERVAL);
+          elapsed += POLL_INTERVAL;
+          const cookies = await context.cookies();
+          cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
+        }
 
-        const html = await page.content();
+        if (!cfCookie) {
+          this.logger.warn(
+            `No cf_clearance cookie found after ${MAX_WAIT}ms for ${url}. May not be CF protected.`,
+          );
+        }
+
+        // Get final URL (after potential redirects) and all cookies
+        const finalUrl = page.url();
+        const allCookies = await context.cookies();
+        const cookieStr = allCookies
+          .map((c) => `${c.name}=${c.value}`)
+          .join('; ');
+
+        this.logger.debug(
+          `CF challenge complete. Final URL: ${finalUrl}, Cookies: ${allCookies.length}`,
+        );
+
         await context.close();
+        await browser.close();
 
-        this.logger.debug(`Successfully fetched ${url} with Playwright`);
-        return html;
+        // Now use axios with the cf_clearance cookie to fetch the actual content
+        this.logger.debug(
+          `Fetching actual content from ${finalUrl} with cf_clearance cookie...`,
+        );
+        const response = await axios.get<string>(finalUrl, {
+          timeout: 15_000,
+          responseType: 'text',
+          headers: {
+            'User-Agent': userAgent,
+            'Cookie': cookieStr,
+            'Referer': new URL(url).origin,
+            'Accept':
+              'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+          },
+          validateStatus: () => true,
+        });
+
+        if (response.status >= 400) {
+          this.logger.error(
+            `Failed to fetch ${finalUrl} with cf_clearance: HTTP ${response.status}`,
+          );
+          throw new HttpException(
+            `Failed to fetch the actual page content after CF challenge (HTTP ${response.status}).`,
+            HttpStatus.BAD_GATEWAY,
+          );
+        }
+
+        const contentType = response.headers['content-type'] ?? '';
+        if (!contentType.includes('html')) {
+          throw new BadRequestException(
+            `Final URL does not return HTML (Content-Type: ${contentType}).`,
+          );
+        }
+
+        this.logger.debug(`Successfully fetched ${finalUrl} with cf_clearance`);
+        return response.data;
       } finally {
         await browser.close();
       }
     } catch (err) {
+      if (err instanceof HttpException || err instanceof BadRequestException) {
+        throw err;
+      }
+
       const errorMsg = err instanceof Error ? err.message : String(err);
       this.logger.error(
-        `Browser fetch failed for ${url}: ${errorMsg} (Stack: ${err instanceof Error ? err.stack : 'unknown'})`,
+        `Browser/axios fetch failed for ${url}: ${errorMsg} (Stack: ${err instanceof Error ? err.stack : 'unknown'})`,
       );
 
       throw new HttpException(
-        'Failed to fetch the page with browser. The site may be blocking automated access.',
+        'Failed to fetch the page with browser and cookie. The site may be blocking automated access.',
         HttpStatus.BAD_GATEWAY,
       );
     }

@@ -109,7 +109,7 @@ let ReaderService = ReaderService_1 = class ReaderService {
     async fetchWithBrowser(url) {
         try {
             const { chromium } = await import('playwright-core');
-            this.logger.debug(`Launching Playwright browser for ${url}...`);
+            this.logger.debug(`Launching Playwright browser for CF challenge at ${url}...`);
             const browser = await chromium.launch({
                 headless: true,
                 args: [
@@ -121,10 +121,11 @@ let ReaderService = ReaderService_1 = class ReaderService {
                 ],
             });
             try {
+                const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+                    'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+                    'Chrome/124.0.0.0 Safari/537.36';
                 const context = await browser.newContext({
-                    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-                        'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-                        'Chrome/124.0.0.0 Safari/537.36',
+                    userAgent,
                     locale: 'ko-KR',
                     extraHTTPHeaders: {
                         'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -140,33 +141,68 @@ let ReaderService = ReaderService_1 = class ReaderService {
                     delete window.cdc_adoQpoasnfa;
                 });
                 const page = await context.newPage();
-                this.logger.debug(`Navigating to ${url} with browser...`);
-                const navigationPromise = page
-                    .waitForNavigation({
-                    waitUntil: 'domcontentloaded',
-                    timeout: 30_000,
-                })
-                    .catch(() => null);
+                this.logger.debug(`Navigating to ${url}...`);
                 await page.goto(url, {
                     waitUntil: 'domcontentloaded',
                     timeout: 30_000,
                 });
-                this.logger.debug(`Waiting for Cloudflare redirect to complete...`);
-                await navigationPromise;
-                await page.waitForTimeout(1500);
-                const html = await page.content();
+                this.logger.debug(`Waiting for Cloudflare challenge completion...`);
+                const POLL_INTERVAL = 500;
+                const MAX_WAIT = 25_000;
+                let elapsed = 0;
+                let cfCookie = null;
+                while (!cfCookie && elapsed < MAX_WAIT) {
+                    await page.waitForTimeout(POLL_INTERVAL);
+                    elapsed += POLL_INTERVAL;
+                    const cookies = await context.cookies();
+                    cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
+                }
+                if (!cfCookie) {
+                    this.logger.warn(`No cf_clearance cookie found after ${MAX_WAIT}ms for ${url}. May not be CF protected.`);
+                }
+                const finalUrl = page.url();
+                const allCookies = await context.cookies();
+                const cookieStr = allCookies
+                    .map((c) => `${c.name}=${c.value}`)
+                    .join('; ');
+                this.logger.debug(`CF challenge complete. Final URL: ${finalUrl}, Cookies: ${allCookies.length}`);
                 await context.close();
-                this.logger.debug(`Successfully fetched ${url} with Playwright`);
-                return html;
+                await browser.close();
+                this.logger.debug(`Fetching actual content from ${finalUrl} with cf_clearance cookie...`);
+                const response = await axios_1.default.get(finalUrl, {
+                    timeout: 15_000,
+                    responseType: 'text',
+                    headers: {
+                        'User-Agent': userAgent,
+                        'Cookie': cookieStr,
+                        'Referer': new URL(url).origin,
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+                    },
+                    validateStatus: () => true,
+                });
+                if (response.status >= 400) {
+                    this.logger.error(`Failed to fetch ${finalUrl} with cf_clearance: HTTP ${response.status}`);
+                    throw new common_1.HttpException(`Failed to fetch the actual page content after CF challenge (HTTP ${response.status}).`, common_1.HttpStatus.BAD_GATEWAY);
+                }
+                const contentType = response.headers['content-type'] ?? '';
+                if (!contentType.includes('html')) {
+                    throw new common_1.BadRequestException(`Final URL does not return HTML (Content-Type: ${contentType}).`);
+                }
+                this.logger.debug(`Successfully fetched ${finalUrl} with cf_clearance`);
+                return response.data;
             }
             finally {
                 await browser.close();
             }
         }
         catch (err) {
+            if (err instanceof common_1.HttpException || err instanceof common_1.BadRequestException) {
+                throw err;
+            }
             const errorMsg = err instanceof Error ? err.message : String(err);
-            this.logger.error(`Browser fetch failed for ${url}: ${errorMsg} (Stack: ${err instanceof Error ? err.stack : 'unknown'})`);
-            throw new common_1.HttpException('Failed to fetch the page with browser. The site may be blocking automated access.', common_1.HttpStatus.BAD_GATEWAY);
+            this.logger.error(`Browser/axios fetch failed for ${url}: ${errorMsg} (Stack: ${err instanceof Error ? err.stack : 'unknown'})`);
+            throw new common_1.HttpException('Failed to fetch the page with browser and cookie. The site may be blocking automated access.', common_1.HttpStatus.BAD_GATEWAY);
         }
     }
     parseHtml(html, originalUrl) {
