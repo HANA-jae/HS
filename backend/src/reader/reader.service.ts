@@ -168,22 +168,51 @@ export class ReaderService {
         // In both cases, we can capture the HTML now
         this.logger.debug(`Navigation complete. Checking for cf_clearance cookie...`);
 
+        // 명시적으로 cf_clearance 쿠키가 설정될 때까지 대기 (최대 35초)
+        let cfCookieFound = false;
+        try {
+          await page.waitForFunction(
+            () => {
+              const cookies = document.cookie.split(';');
+              return cookies.some((c) => c.trim().startsWith('cf_clearance='));
+            },
+            { timeout: 35_000 },
+          );
+          this.logger.debug(`✓ cf_clearance cookie detected by JavaScript!`);
+          cfCookieFound = true;
+        } catch {
+          this.logger.debug(`⚠ cf_clearance not set by JavaScript, checking context cookies...`);
+        }
+
         const cookies = await context.cookies();
         const cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
 
-        if (!cfCookie) {
+        if (!cfCookie && !cfCookieFound) {
           this.logger.warn(
             `No cf_clearance cookie found for ${url}. May not be CF protected or challenge not completed.`,
           );
-        } else {
-          this.logger.debug(`CF challenge completed successfully. cf_clearance obtained.`);
+        } else if (cfCookie || cfCookieFound) {
+          this.logger.log(`✓ CF challenge completed successfully!`);
+
+          // CF 완료 후, 페이지가 리다이렉트될 때까지 추가 대기
+          this.logger.debug(`Waiting for page redirect/load after CF challenge...`);
+          try {
+            await page.waitForNavigation({
+              waitUntil: 'domcontentloaded',
+              timeout: 10_000,
+            });
+            this.logger.debug(`Page redirected successfully`);
+          } catch {
+            this.logger.debug(`No navigation detected, page may already be loaded`);
+          }
+
+          // 혹시 모르니 1초 더 대기 (페이지 렌더링 완료)
+          await page.waitForTimeout(1000);
         }
 
         // CF challenge passed — page is fully rendered
         // Capture the actual page content directly from Playwright
-        this.logger.debug(
-          `CF challenge complete. cf_clearance: ${!!cfCookie}. Capturing rendered HTML...`,
-        );
+        this.logger.debug(`Capturing rendered HTML...`);
 
         const html = await page.content();
         await context.close();
