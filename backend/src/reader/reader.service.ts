@@ -21,9 +21,11 @@ export class ReaderService {
   private readonly logger = new Logger(ReaderService.name);
 
   async fetchAndParse(url: string): Promise<ReaderResult> {
+    this.logger.log(`[fetchAndParse] Starting for URL: ${url}`);
     let html: string;
 
     try {
+      this.logger.debug(`[fetchAndParse] Making initial axios request to ${url}...`);
       const response = await axios.get<string>(url, {
         timeout: 10_000,
         maxRedirects: 5,
@@ -49,11 +51,13 @@ export class ReaderService {
         );
         htmlContent = await this.fetchWithBrowser(url);
       } else if (response.status >= 400) {
+        this.logger.error(`[fetchAndParse] HTTP ${response.status} from ${url} (not CF protected)`);
         throw new HttpException(
           `Remote server returned HTTP ${response.status} for the requested URL.`,
           HttpStatus.BAD_GATEWAY,
         );
       } else {
+        this.logger.log(`[fetchAndParse] HTTP ${response.status} OK from ${url} - using direct response`);
         htmlContent = response.data as string;
       }
 

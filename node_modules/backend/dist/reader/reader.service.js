@@ -56,8 +56,10 @@ const NOISE_TAGS = [
 let ReaderService = ReaderService_1 = class ReaderService {
     logger = new common_1.Logger(ReaderService_1.name);
     async fetchAndParse(url) {
+        this.logger.log(`[fetchAndParse] Starting for URL: ${url}`);
         let html;
         try {
+            this.logger.debug(`[fetchAndParse] Making initial axios request to ${url}...`);
             const response = await axios_1.default.get(url, {
                 timeout: 10_000,
                 maxRedirects: 5,
@@ -77,9 +79,11 @@ let ReaderService = ReaderService_1 = class ReaderService {
                 htmlContent = await this.fetchWithBrowser(url);
             }
             else if (response.status >= 400) {
+                this.logger.error(`[fetchAndParse] HTTP ${response.status} from ${url} (not CF protected)`);
                 throw new common_1.HttpException(`Remote server returned HTTP ${response.status} for the requested URL.`, common_1.HttpStatus.BAD_GATEWAY);
             }
             else {
+                this.logger.log(`[fetchAndParse] HTTP ${response.status} OK from ${url} - using direct response`);
                 htmlContent = response.data;
             }
             if (response.status < 400) {

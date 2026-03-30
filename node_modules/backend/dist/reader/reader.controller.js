@@ -11,17 +11,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ReaderController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReaderController = void 0;
 const common_1 = require("@nestjs/common");
 const reader_service_1 = require("./reader.service");
 const fetch_url_dto_1 = require("./dto/fetch-url.dto");
-let ReaderController = class ReaderController {
+let ReaderController = ReaderController_1 = class ReaderController {
     readerService;
+    logger = new common_1.Logger(ReaderController_1.name);
     constructor(readerService) {
         this.readerService = readerService;
     }
     async fetch(dto) {
+        this.logger.log(`Received fetch request for URL: ${dto.url}`);
         return this.readerService.fetchAndParse(dto.url);
     }
 };
@@ -34,7 +37,7 @@ __decorate([
     __metadata("design:paramtypes", [fetch_url_dto_1.FetchUrlDto]),
     __metadata("design:returntype", Promise)
 ], ReaderController.prototype, "fetch", null);
-exports.ReaderController = ReaderController = __decorate([
+exports.ReaderController = ReaderController = ReaderController_1 = __decorate([
     (0, common_1.Controller)('reader'),
     __metadata("design:paramtypes", [reader_service_1.ReaderService])
 ], ReaderController);
