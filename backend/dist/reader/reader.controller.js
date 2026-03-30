@@ -24,6 +24,7 @@ let ReaderController = ReaderController_1 = class ReaderController {
         this.readerService = readerService;
     }
     async fetch(dto) {
+        console.log(`[CONTROLLER] Received fetch request for URL: ${dto.url}`);
         this.logger.log(`Received fetch request for URL: ${dto.url}`);
         return this.readerService.fetchAndParse(dto.url);
     }
