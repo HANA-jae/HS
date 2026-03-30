@@ -1,0 +1,1 @@
+{"version":3,"file":"fetch-url.dto.js","sourceRoot":"","sources":["../../../src/reader/dto/fetch-url.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,qDAAoD;AAEpD,MAAa,WAAW;IAStB,GAAG,CAAS;CACb;AAVD,kCAUC;AADC;IARC,IAAA,4BAAU,GAAE;IACZ,IAAA,uBAAK,EACJ;QACE,SAAS,EAAE,CAAC,MAAM,EAAE,OAAO,CAAC;QAC5B,gBAAgB,EAAE,IAAI;KACvB,EACD,EAAE,OAAO,EAAE,uCAAuC,EAAE,CACrD;;wCACW"}

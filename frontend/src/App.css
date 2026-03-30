@@ -1,0 +1,126 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: #f5f2eb;
+  color: #222;
+  line-height: 1.7;
+}
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+.app-header {
+  background: #1a1a2e;
+  color: #fff;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.app-header h1 { font-size: 2rem; letter-spacing: 0.05em; }
+.app-header p  { margin-top: 0.5rem; color: #aaa; font-size: 1rem; }
+
+.app-main {
+  flex: 1;
+  max-width: 760px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.url-form  { display: flex; gap: 0.5rem; }
+
+.url-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  font-family: system-ui, sans-serif;
+}
+.url-input:focus { outline: none; border-color: #1a1a2e; }
+
+.fetch-button {
+  padding: 0.75rem 1.5rem;
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: system-ui, sans-serif;
+  white-space: nowrap;
+}
+.fetch-button:hover:not(:disabled) { background: #333366; }
+.fetch-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.error-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff3f3;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-family: system-ui, sans-serif;
+}
+.error-banner button {
+  background: none; border: none; font-size: 1.25rem;
+  cursor: pointer; color: inherit; line-height: 1;
+}
+
+.loading-indicator {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  font-style: italic;
+}
+
+.reader-view { margin-top: 1.5rem; }
+
+.reader-header {
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reader-title {
+  font-size: 1.75rem;
+  line-height: 1.3;
+  color: #1a1a2e;
+}
+
+.reader-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+  font-family: system-ui, sans-serif;
+}
+.reader-meta a { color: #555; text-decoration: underline; word-break: break-all; }
+
+.clear-button {
+  display: inline-block;
+  margin-top: 0.75rem;
+  background: none;
+  border: 1px solid #999;
+  color: #555;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: system-ui, sans-serif;
+  transition: all 0.2s;
+}
+.clear-button:hover { background: #eee; }
+
+.reader-content p {
+  margin-bottom: 1.2em;
+  font-size: 1.1rem;
+  line-height: 1.85;
+  max-width: 65ch;
+}
