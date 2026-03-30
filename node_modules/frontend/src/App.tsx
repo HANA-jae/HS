@@ -37,17 +37,13 @@ export default function App() {
         <div className="header-top">
           <div className="header-left">
             <span className="journal-code">JAR</span>
-            <h1 className="journal-title">Journal of Applied Research</h1>
+            <h1 className="journal-title">Article Reader</h1>
           </div>
           <nav className="header-nav">
             <a href="#home">Home</a>
             <a href="#browse">Browse</a>
             <a href="#authors">Authors</a>
-            <a href="#about">About</a>
           </nav>
-        </div>
-        <div className="header-meta">
-          Volume 12, Issue 3 · March 2026
         </div>
       </header>
 
@@ -62,7 +58,7 @@ export default function App() {
 
         {isLoading && (
           <div className="loading-indicator" aria-live="polite">
-            콘텐츠를 가져오는 중...
+            Loading article...
           </div>
         )}
 
