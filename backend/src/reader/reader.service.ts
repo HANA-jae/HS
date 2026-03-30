@@ -141,29 +141,38 @@ export class ReaderService {
         const page = await context.newPage();
 
         this.logger.debug(`Navigating to ${url}...`);
+
+        // Register navigation listener BEFORE goto to catch CF redirects
+        const navigationPromise = page
+          .waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30_000 })
+          .catch(() => null); // Sites without CF won't redirect
+
+        // Initial page load (may be CF challenge page)
         await page.goto(url, {
           waitUntil: 'domcontentloaded',
           timeout: 30_000,
         });
 
-        // Poll for cf_clearance cookie (sign of CF challenge completion)
-        this.logger.debug(`Waiting for Cloudflare challenge completion...`);
-        const POLL_INTERVAL = 500;
-        const MAX_WAIT = 25_000;
-        let elapsed = 0;
-        let cfCookie: { name: string; value: string } | null = null;
+        // Wait for any CF redirect to complete
+        // (if no redirect, this resolves immediately)
+        this.logger.debug(`Waiting for Cloudflare challenge/redirect...`);
+        await navigationPromise;
 
-        while (!cfCookie && elapsed < MAX_WAIT) {
-          await page.waitForTimeout(POLL_INTERVAL);
-          elapsed += POLL_INTERVAL;
-          const cookies = await context.cookies();
-          cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
-        }
+        // After navigation completes, page is either:
+        // 1. CF-protected site → CF challenge page with rendered DOM
+        // 2. Non-CF site → actual content page
+        // In both cases, we can capture the HTML now
+        this.logger.debug(`Navigation complete. Checking for cf_clearance cookie...`);
+
+        const cookies = await context.cookies();
+        const cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
 
         if (!cfCookie) {
           this.logger.warn(
-            `No cf_clearance cookie found after ${MAX_WAIT}ms for ${url}. May not be CF protected.`,
+            `No cf_clearance cookie found for ${url}. May not be CF protected or challenge not completed.`,
           );
+        } else {
+          this.logger.debug(`CF challenge completed successfully. cf_clearance obtained.`);
         }
 
         // CF challenge passed — page is fully rendered

@@ -142,23 +142,23 @@ let ReaderService = ReaderService_1 = class ReaderService {
                 });
                 const page = await context.newPage();
                 this.logger.debug(`Navigating to ${url}...`);
+                const navigationPromise = page
+                    .waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30_000 })
+                    .catch(() => null);
                 await page.goto(url, {
                     waitUntil: 'domcontentloaded',
                     timeout: 30_000,
                 });
-                this.logger.debug(`Waiting for Cloudflare challenge completion...`);
-                const POLL_INTERVAL = 500;
-                const MAX_WAIT = 25_000;
-                let elapsed = 0;
-                let cfCookie = null;
-                while (!cfCookie && elapsed < MAX_WAIT) {
-                    await page.waitForTimeout(POLL_INTERVAL);
-                    elapsed += POLL_INTERVAL;
-                    const cookies = await context.cookies();
-                    cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
-                }
+                this.logger.debug(`Waiting for Cloudflare challenge/redirect...`);
+                await navigationPromise;
+                this.logger.debug(`Navigation complete. Checking for cf_clearance cookie...`);
+                const cookies = await context.cookies();
+                const cfCookie = cookies.find((c) => c.name === 'cf_clearance') ?? null;
                 if (!cfCookie) {
-                    this.logger.warn(`No cf_clearance cookie found after ${MAX_WAIT}ms for ${url}. May not be CF protected.`);
+                    this.logger.warn(`No cf_clearance cookie found for ${url}. May not be CF protected or challenge not completed.`);
+                }
+                else {
+                    this.logger.debug(`CF challenge completed successfully. cf_clearance obtained.`);
                 }
                 this.logger.debug(`CF challenge complete. cf_clearance: ${!!cfCookie}. Capturing rendered HTML...`);
                 const html = await page.content();
