@@ -40,21 +40,34 @@ export class ReaderService {
         validateStatus: () => true,
       });
 
-      if (response.status >= 400) {
+      let htmlContent: string;
+
+      // Cloudflare JS Challenge 또는 rate limit — Playwright로 폴백
+      if ([403, 429, 503].includes(response.status)) {
+        this.logger.warn(
+          `HTTP ${response.status} from ${url}, retrying with browser...`,
+        );
+        htmlContent = await this.fetchWithBrowser(url);
+      } else if (response.status >= 400) {
         throw new HttpException(
           `Remote server returned HTTP ${response.status} for the requested URL.`,
           HttpStatus.BAD_GATEWAY,
         );
+      } else {
+        htmlContent = response.data as string;
       }
 
-      const contentType = response.headers['content-type'] ?? '';
-      if (!contentType.includes('html')) {
-        throw new BadRequestException(
-          `URL does not point to an HTML page (Content-Type: ${contentType}).`,
-        );
+      // Playwright 폴백이 아닌 경우만 Content-Type 검증
+      if (response.status < 400) {
+        const contentType = response.headers['content-type'] ?? '';
+        if (!contentType.includes('html')) {
+          throw new BadRequestException(
+            `URL does not point to an HTML page (Content-Type: ${contentType}).`,
+          );
+        }
       }
 
-      html = response.data as string;
+      html = htmlContent;
     } catch (err) {
       if (err instanceof HttpException || err instanceof BadRequestException) {
         throw err;
@@ -81,6 +94,49 @@ export class ReaderService {
     }
 
     return this.parseHtml(html, url);
+  }
+
+  private async fetchWithBrowser(url: string): Promise<string> {
+    try {
+      const { chromium } = await import('playwright-core');
+
+      this.logger.debug(`Launching Playwright browser for ${url}...`);
+      const browser = await chromium.launch({ headless: true });
+
+      try {
+        const context = await browser.newContext({
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+            'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+            'Chrome/124.0.0.0 Safari/537.36',
+          locale: 'ko-KR',
+        });
+
+        const page = await context.newPage();
+
+        this.logger.debug(`Navigating to ${url} with browser...`);
+        await page.goto(url, {
+          waitUntil: 'networkidle',
+          timeout: 30_000,
+        });
+
+        const html = await page.content();
+        await context.close();
+
+        this.logger.debug(`Successfully fetched ${url} with Playwright`);
+        return html;
+      } finally {
+        await browser.close();
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Browser fetch failed for ${url}: ${errorMsg}`);
+
+      throw new HttpException(
+        'Failed to fetch the page with browser. The site may be blocking automated access.',
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
   }
 
   private parseHtml(html: string, originalUrl: string): ReaderResult {

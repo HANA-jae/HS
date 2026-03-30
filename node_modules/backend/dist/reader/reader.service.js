@@ -71,14 +71,24 @@ let ReaderService = ReaderService_1 = class ReaderService {
                 },
                 validateStatus: () => true,
             });
-            if (response.status >= 400) {
+            let htmlContent;
+            if ([403, 429, 503].includes(response.status)) {
+                this.logger.warn(`HTTP ${response.status} from ${url}, retrying with browser...`);
+                htmlContent = await this.fetchWithBrowser(url);
+            }
+            else if (response.status >= 400) {
                 throw new common_1.HttpException(`Remote server returned HTTP ${response.status} for the requested URL.`, common_1.HttpStatus.BAD_GATEWAY);
             }
-            const contentType = response.headers['content-type'] ?? '';
-            if (!contentType.includes('html')) {
-                throw new common_1.BadRequestException(`URL does not point to an HTML page (Content-Type: ${contentType}).`);
+            else {
+                htmlContent = response.data;
             }
-            html = response.data;
+            if (response.status < 400) {
+                const contentType = response.headers['content-type'] ?? '';
+                if (!contentType.includes('html')) {
+                    throw new common_1.BadRequestException(`URL does not point to an HTML page (Content-Type: ${contentType}).`);
+                }
+            }
+            html = htmlContent;
         }
         catch (err) {
             if (err instanceof common_1.HttpException || err instanceof common_1.BadRequestException) {
@@ -95,6 +105,39 @@ let ReaderService = ReaderService_1 = class ReaderService {
             throw new common_1.HttpException('An unexpected error occurred while fetching the URL.', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return this.parseHtml(html, url);
+    }
+    async fetchWithBrowser(url) {
+        try {
+            const { chromium } = await import('playwright-core');
+            this.logger.debug(`Launching Playwright browser for ${url}...`);
+            const browser = await chromium.launch({ headless: true });
+            try {
+                const context = await browser.newContext({
+                    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+                        'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+                        'Chrome/124.0.0.0 Safari/537.36',
+                    locale: 'ko-KR',
+                });
+                const page = await context.newPage();
+                this.logger.debug(`Navigating to ${url} with browser...`);
+                await page.goto(url, {
+                    waitUntil: 'networkidle',
+                    timeout: 30_000,
+                });
+                const html = await page.content();
+                await context.close();
+                this.logger.debug(`Successfully fetched ${url} with Playwright`);
+                return html;
+            }
+            finally {
+                await browser.close();
+            }
+        }
+        catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            this.logger.error(`Browser fetch failed for ${url}: ${errorMsg}`);
+            throw new common_1.HttpException('Failed to fetch the page with browser. The site may be blocking automated access.', common_1.HttpStatus.BAD_GATEWAY);
+        }
     }
     parseHtml(html, originalUrl) {
         const $ = cheerio.load(html);
