@@ -141,23 +141,19 @@ let ReaderService = ReaderService_1 = class ReaderService {
                 });
                 const page = await context.newPage();
                 this.logger.debug(`Navigating to ${url} with browser...`);
+                const navigationPromise = page
+                    .waitForNavigation({
+                    waitUntil: 'domcontentloaded',
+                    timeout: 30_000,
+                })
+                    .catch(() => null);
                 await page.goto(url, {
                     waitUntil: 'domcontentloaded',
                     timeout: 30_000,
                 });
-                this.logger.debug(`Waiting for Cloudflare challenge completion...`);
-                await page.waitForFunction(() => {
-                    const cfSelectors = [
-                        '#challenge-running',
-                        '#cf-challenge-running',
-                        '.cf-browser-verification',
-                        '#challenge-body-text',
-                        '#challenge-form',
-                    ];
-                    return !cfSelectors.some((selector) => document.querySelector(selector));
-                }, { timeout: 30_000, polling: 500 });
-                await page.waitForLoadState('domcontentloaded');
-                await page.waitForTimeout(500);
+                this.logger.debug(`Waiting for Cloudflare redirect to complete...`);
+                await navigationPromise;
+                await page.waitForTimeout(1500);
                 const html = await page.content();
                 await context.close();
                 this.logger.debug(`Successfully fetched ${url} with Playwright`);

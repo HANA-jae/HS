@@ -139,37 +139,31 @@ export class ReaderService {
         const page = await context.newPage();
 
         this.logger.debug(`Navigating to ${url} with browser...`);
-        // Use domcontentloaded instead of networkidle to avoid timeout
-        // from ads/analytics that poll indefinitely
+
+        // Register a listener for navigation BEFORE goto
+        // This captures any Cloudflare redirect that happens after JS execution
+        const navigationPromise = page
+          .waitForNavigation({
+            waitUntil: 'domcontentloaded',
+            timeout: 30_000,
+          })
+          .catch(() => null); // Sites without CF challenge won't redirect
+
+        // Initial goto loads the page (may be CF challenge or actual content)
         await page.goto(url, {
           waitUntil: 'domcontentloaded',
           timeout: 30_000,
         });
 
-        // Wait for Cloudflare challenge to complete and redirect to actual page
-        // CF challenge elements disappear once challenge is solved and page redirects
-        this.logger.debug(`Waiting for Cloudflare challenge completion...`);
-        await page.waitForFunction(
-          () => {
-            // Cloudflare challenge DOM elements that appear during verification
-            const cfSelectors = [
-              '#challenge-running',
-              '#cf-challenge-running',
-              '.cf-browser-verification',
-              '#challenge-body-text',
-              '#challenge-form',
-            ];
-            // Return true when all CF challenge elements are gone
-            return !cfSelectors.some((selector) =>
-              document.querySelector(selector),
-            );
-          },
-          { timeout: 30_000, polling: 500 },
-        );
+        // Wait for CF redirect to complete (if any)
+        // navigationPromise resolves when:
+        // - CF challenge is solved and redirects to actual page, OR
+        // - No redirect occurs (CF-free sites return null via catch)
+        this.logger.debug(`Waiting for Cloudflare redirect to complete...`);
+        await navigationPromise;
 
-        // Wait for page to stabilize after CF redirect
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(500);
+        // Allow JS to finish rendering dynamic content after redirect
+        await page.waitForTimeout(1500);
 
         const html = await page.content();
         await context.close();
