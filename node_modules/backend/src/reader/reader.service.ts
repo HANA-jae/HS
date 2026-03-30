@@ -101,7 +101,16 @@ export class ReaderService {
       const { chromium } = await import('playwright-core');
 
       this.logger.debug(`Launching Playwright browser for ${url}...`);
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch({
+        headless: true,
+        args: [
+          '--disable-blink-features=AutomationControlled',
+          '--disable-features=IsolateOrigins,site-per-process',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+        ],
+      });
 
       try {
         const context = await browser.newContext({
@@ -110,15 +119,35 @@ export class ReaderService {
             'AppleWebKit/537.36 (KHTML, like Gecko) ' +
             'Chrome/124.0.0.0 Safari/537.36',
           locale: 'ko-KR',
+          extraHTTPHeaders: {
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Accept':
+              'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+
+        // Hide headless browser detection
+        await context.addInitScript(() => {
+          Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined,
+          });
+          delete (window as any).__playwright;
+          delete (window as any).__pw_manual;
+          delete (window as any).cdc_adoQpoasnfa;
         });
 
         const page = await context.newPage();
 
         this.logger.debug(`Navigating to ${url} with browser...`);
+        // Use domcontentloaded instead of networkidle to avoid timeout
+        // from ads/analytics that poll indefinitely
         await page.goto(url, {
-          waitUntil: 'networkidle',
+          waitUntil: 'domcontentloaded',
           timeout: 30_000,
         });
+
+        // Wait briefly for JS to finish rendering
+        await page.waitForTimeout(2000);
 
         const html = await page.content();
         await context.close();
@@ -130,7 +159,9 @@ export class ReaderService {
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      this.logger.error(`Browser fetch failed for ${url}: ${errorMsg}`);
+      this.logger.error(
+        `Browser fetch failed for ${url}: ${errorMsg} (Stack: ${err instanceof Error ? err.stack : 'unknown'})`,
+      );
 
       throw new HttpException(
         'Failed to fetch the page with browser. The site may be blocking automated access.',

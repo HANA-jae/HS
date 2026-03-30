@@ -110,20 +110,42 @@ let ReaderService = ReaderService_1 = class ReaderService {
         try {
             const { chromium } = await import('playwright-core');
             this.logger.debug(`Launching Playwright browser for ${url}...`);
-            const browser = await chromium.launch({ headless: true });
+            const browser = await chromium.launch({
+                headless: true,
+                args: [
+                    '--disable-blink-features=AutomationControlled',
+                    '--disable-features=IsolateOrigins,site-per-process',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                ],
+            });
             try {
                 const context = await browser.newContext({
                     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
                         'AppleWebKit/537.36 (KHTML, like Gecko) ' +
                         'Chrome/124.0.0.0 Safari/537.36',
                     locale: 'ko-KR',
+                    extraHTTPHeaders: {
+                        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    },
+                });
+                await context.addInitScript(() => {
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined,
+                    });
+                    delete window.__playwright;
+                    delete window.__pw_manual;
+                    delete window.cdc_adoQpoasnfa;
                 });
                 const page = await context.newPage();
                 this.logger.debug(`Navigating to ${url} with browser...`);
                 await page.goto(url, {
-                    waitUntil: 'networkidle',
+                    waitUntil: 'domcontentloaded',
                     timeout: 30_000,
                 });
+                await page.waitForTimeout(2000);
                 const html = await page.content();
                 await context.close();
                 this.logger.debug(`Successfully fetched ${url} with Playwright`);
@@ -135,7 +157,7 @@ let ReaderService = ReaderService_1 = class ReaderService {
         }
         catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            this.logger.error(`Browser fetch failed for ${url}: ${errorMsg}`);
+            this.logger.error(`Browser fetch failed for ${url}: ${errorMsg} (Stack: ${err instanceof Error ? err.stack : 'unknown'})`);
             throw new common_1.HttpException('Failed to fetch the page with browser. The site may be blocking automated access.', common_1.HttpStatus.BAD_GATEWAY);
         }
     }
