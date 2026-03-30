@@ -160,16 +160,14 @@ let ReaderService = ReaderService_1 = class ReaderService {
                 if (!cfCookie) {
                     this.logger.warn(`No cf_clearance cookie found after ${MAX_WAIT}ms for ${url}. May not be CF protected.`);
                 }
-                const finalUrl = page.url();
                 const allCookies = await context.cookies();
                 const cookieStr = allCookies
                     .map((c) => `${c.name}=${c.value}`)
                     .join('; ');
-                this.logger.debug(`CF challenge complete. Final URL: ${finalUrl}, Cookies: ${allCookies.length}`);
+                this.logger.debug(`CF challenge complete. Cookies: ${allCookies.length}, cf_clearance: ${!!cfCookie}. Requesting original URL with cookies...`);
                 await context.close();
-                await browser.close();
-                this.logger.debug(`Fetching actual content from ${finalUrl} with cf_clearance cookie...`);
-                const response = await axios_1.default.get(finalUrl, {
+                this.logger.debug(`Fetching actual content from ${url} with cf_clearance cookie...`);
+                const response = await axios_1.default.get(url, {
                     timeout: 15_000,
                     responseType: 'text',
                     headers: {
@@ -182,14 +180,14 @@ let ReaderService = ReaderService_1 = class ReaderService {
                     validateStatus: () => true,
                 });
                 if (response.status >= 400) {
-                    this.logger.error(`Failed to fetch ${finalUrl} with cf_clearance: HTTP ${response.status}`);
+                    this.logger.error(`Failed to fetch ${url} with cf_clearance: HTTP ${response.status}`);
                     throw new common_1.HttpException(`Failed to fetch the actual page content after CF challenge (HTTP ${response.status}).`, common_1.HttpStatus.BAD_GATEWAY);
                 }
                 const contentType = response.headers['content-type'] ?? '';
                 if (!contentType.includes('html')) {
                     throw new common_1.BadRequestException(`Final URL does not return HTML (Content-Type: ${contentType}).`);
                 }
-                this.logger.debug(`Successfully fetched ${finalUrl} with cf_clearance`);
+                this.logger.debug(`Successfully fetched ${url} with cf_clearance`);
                 return response.data;
             }
             finally {

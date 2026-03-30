@@ -166,25 +166,24 @@ export class ReaderService {
           );
         }
 
-        // Get final URL (after potential redirects) and all cookies
-        const finalUrl = page.url();
+        // Extract all cookies — cf_clearance is the CF bypass token
         const allCookies = await context.cookies();
         const cookieStr = allCookies
           .map((c) => `${c.name}=${c.value}`)
           .join('; ');
 
         this.logger.debug(
-          `CF challenge complete. Final URL: ${finalUrl}, Cookies: ${allCookies.length}`,
+          `CF challenge complete. Cookies: ${allCookies.length}, cf_clearance: ${!!cfCookie}. Requesting original URL with cookies...`,
         );
 
         await context.close();
-        await browser.close();
+        // browser is closed by the finally block below
 
         // Now use axios with the cf_clearance cookie to fetch the actual content
         this.logger.debug(
-          `Fetching actual content from ${finalUrl} with cf_clearance cookie...`,
+          `Fetching actual content from ${url} with cf_clearance cookie...`,
         );
-        const response = await axios.get<string>(finalUrl, {
+        const response = await axios.get<string>(url, {
           timeout: 15_000,
           responseType: 'text',
           headers: {
@@ -200,7 +199,7 @@ export class ReaderService {
 
         if (response.status >= 400) {
           this.logger.error(
-            `Failed to fetch ${finalUrl} with cf_clearance: HTTP ${response.status}`,
+            `Failed to fetch ${url} with cf_clearance: HTTP ${response.status}`,
           );
           throw new HttpException(
             `Failed to fetch the actual page content after CF challenge (HTTP ${response.status}).`,
@@ -215,7 +214,7 @@ export class ReaderService {
           );
         }
 
-        this.logger.debug(`Successfully fetched ${finalUrl} with cf_clearance`);
+        this.logger.debug(`Successfully fetched ${url} with cf_clearance`);
         return response.data;
       } finally {
         await browser.close();
