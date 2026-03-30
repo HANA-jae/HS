@@ -15,11 +15,9 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
     }));
-    const port = parseInt(process.env.PORT || '0', 10);
-    const server = await app.listen(port, '0.0.0.0');
-    const addr = server.address();
-    const actualPort = typeof addr === 'object' ? addr?.port : port;
-    console.log(`Backend running on http://localhost:${actualPort || 9001}`);
+    const port = 9001;
+    await app.listen(port);
+    console.log(`Backend running on http://localhost:${port}`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

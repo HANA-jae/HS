@@ -22,19 +22,23 @@ export function UrlInput({ onSubmit, isLoading }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="url-form">
-      <input
-        type="url"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="https://example.com/article"
-        className="url-input"
-        disabled={isLoading}
-        required
-      />
-      <button type="submit" className="fetch-button" disabled={isLoading}>
-        {isLoading ? '가져오는 중...' : '읽기'}
-      </button>
-    </form>
+    <section className="retrieve-section">
+      <h2>Retrieve Article</h2>
+      <p className="retrieve-description">Enter a URL or DOI to retrieve and read the full article</p>
+      <form onSubmit={handleSubmit} className="url-form">
+        <input
+          type="url"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="https://example.com/article"
+          className="url-input"
+          disabled={isLoading}
+          required
+        />
+        <button type="submit" className="fetch-button" disabled={isLoading}>
+          {isLoading ? 'Retrieving...' : 'Retrieve'}
+        </button>
+      </form>
+    </section>
   );
 }

@@ -34,8 +34,21 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>URL Reader</h1>
-        <p>URL을 붙여넣으면 본문을 깔끔하게 읽을 수 있습니다.</p>
+        <div className="header-top">
+          <div className="header-left">
+            <span className="journal-code">JAR</span>
+            <h1 className="journal-title">Journal of Applied Research</h1>
+          </div>
+          <nav className="header-nav">
+            <a href="#home">Home</a>
+            <a href="#browse">Browse</a>
+            <a href="#authors">Authors</a>
+            <a href="#about">About</a>
+          </nav>
+        </div>
+        <div className="header-meta">
+          Volume 12, Issue 3 · March 2026
+        </div>
       </header>
 
       <main className="app-main">
