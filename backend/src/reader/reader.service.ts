@@ -166,56 +166,18 @@ export class ReaderService {
           );
         }
 
-        // Extract all cookies — cf_clearance is the CF bypass token
-        const allCookies = await context.cookies();
-        const cookieStr = allCookies
-          .map((c) => `${c.name}=${c.value}`)
-          .join('; ');
-
+        // CF challenge passed — page is fully rendered
+        // Capture the actual page content directly from Playwright
         this.logger.debug(
-          `CF challenge complete. Cookies: ${allCookies.length}, cf_clearance: ${!!cfCookie}. Requesting original URL with cookies...`,
+          `CF challenge complete. cf_clearance: ${!!cfCookie}. Capturing rendered HTML...`,
         );
 
+        const html = await page.content();
         await context.close();
         // browser is closed by the finally block below
 
-        // Now use axios with the cf_clearance cookie to fetch the actual content
-        this.logger.debug(
-          `Fetching actual content from ${url} with cf_clearance cookie...`,
-        );
-        const response = await axios.get<string>(url, {
-          timeout: 15_000,
-          responseType: 'text',
-          headers: {
-            'User-Agent': userAgent,
-            'Cookie': cookieStr,
-            'Referer': new URL(url).origin,
-            'Accept':
-              'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-          },
-          validateStatus: () => true,
-        });
-
-        if (response.status >= 400) {
-          this.logger.error(
-            `Failed to fetch ${url} with cf_clearance: HTTP ${response.status}`,
-          );
-          throw new HttpException(
-            `Failed to fetch the actual page content after CF challenge (HTTP ${response.status}).`,
-            HttpStatus.BAD_GATEWAY,
-          );
-        }
-
-        const contentType = response.headers['content-type'] ?? '';
-        if (!contentType.includes('html')) {
-          throw new BadRequestException(
-            `Final URL does not return HTML (Content-Type: ${contentType}).`,
-          );
-        }
-
-        this.logger.debug(`Successfully fetched ${url} with cf_clearance`);
-        return response.data;
+        this.logger.debug(`Successfully captured HTML from ${url} after CF challenge`);
+        return html;
       } finally {
         await browser.close();
       }
