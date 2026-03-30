@@ -145,7 +145,19 @@ let ReaderService = ReaderService_1 = class ReaderService {
                     waitUntil: 'domcontentloaded',
                     timeout: 30_000,
                 });
-                await page.waitForTimeout(2000);
+                this.logger.debug(`Waiting for Cloudflare challenge completion...`);
+                await page.waitForFunction(() => {
+                    const cfSelectors = [
+                        '#challenge-running',
+                        '#cf-challenge-running',
+                        '.cf-browser-verification',
+                        '#challenge-body-text',
+                        '#challenge-form',
+                    ];
+                    return !cfSelectors.some((selector) => document.querySelector(selector));
+                }, { timeout: 30_000, polling: 500 });
+                await page.waitForLoadState('domcontentloaded');
+                await page.waitForTimeout(500);
                 const html = await page.content();
                 await context.close();
                 this.logger.debug(`Successfully fetched ${url} with Playwright`);

@@ -146,8 +146,30 @@ export class ReaderService {
           timeout: 30_000,
         });
 
-        // Wait briefly for JS to finish rendering
-        await page.waitForTimeout(2000);
+        // Wait for Cloudflare challenge to complete and redirect to actual page
+        // CF challenge elements disappear once challenge is solved and page redirects
+        this.logger.debug(`Waiting for Cloudflare challenge completion...`);
+        await page.waitForFunction(
+          () => {
+            // Cloudflare challenge DOM elements that appear during verification
+            const cfSelectors = [
+              '#challenge-running',
+              '#cf-challenge-running',
+              '.cf-browser-verification',
+              '#challenge-body-text',
+              '#challenge-form',
+            ];
+            // Return true when all CF challenge elements are gone
+            return !cfSelectors.some((selector) =>
+              document.querySelector(selector),
+            );
+          },
+          { timeout: 30_000, polling: 500 },
+        );
+
+        // Wait for page to stabilize after CF redirect
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(500);
 
         const html = await page.content();
         await context.close();
