@@ -52,6 +52,10 @@ body::before {
   flex-direction: column;
 }
 
+.app-footer {
+  margin-top: auto;
+}
+
 /* ========== HEADER ========== */
 .app-header {
   position: sticky;
@@ -138,7 +142,7 @@ body::before {
   display: flex;
   gap: 0.75rem;
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
 }
 
 .url-input {
@@ -192,6 +196,93 @@ body::before {
 .fetch-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ========== CATEGORY CHIPS ========== */
+.category-chips {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+  scrollbar-width: none;
+}
+
+.category-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.category-chip {
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.category-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.category-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ========== FOOTER ========== */
+.app-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1.25rem 2rem;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-brand {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.footer-nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-nav a {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-nav a:hover {
+  color: var(--accent);
+}
+
+.footer-copy {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* ========== PAPER PREVIEW ========== */

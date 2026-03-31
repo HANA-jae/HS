@@ -64,8 +64,281 @@ References
 [4] Jin, C., Ge, R., Netrapalli, P., Kakade, S. M., & Jordan, M. I. (2017). How to escape saddle points efficiently. ICML 2017.
 [5] Du, S. S., Zhai, X., Poczos, B., & Singh, A. (2018). Gradient descent provably optimizes overparameterized neural networks. ICLR 2019.`;
 
+interface CategoryPaper {
+  title: string;
+  body: string;
+  meta: string[];
+}
+
+const CATEGORY_PAPERS: Record<string, CategoryPaper> = {
+  IT: {
+    title: "Transformer Architecture and Scaling Laws in Modern Large Language Models",
+    body: `Abstract
+
+Recent advances in deep learning have demonstrated that transformer-based architectures scale remarkably well with model size and training data. We investigate the empirical scaling laws governing the performance of large language models (LLMs) as a function of model parameters, compute budget, and dataset size. Through extensive experiments on a variety of language modeling tasks, we establish power-law relationships between these factors and model performance. Our findings suggest that current language models have not saturated, and continued scaling improvements remain achievable.
+
+1. Introduction
+
+The introduction of the transformer architecture by Vaswani et al. (2017) has revolutionized natural language processing. Unlike recurrent neural networks, transformers enable efficient parallel computation through self-attention mechanisms, making them suitable for very large-scale training. The emergence of large language models like GPT-3 and BERT has demonstrated that scale alone can lead to remarkable improvements in language understanding and generation capabilities.
+
+Despite empirical successes, understanding the theoretical foundations of scaling in neural networks remains an open question. Prior work has established scaling laws for convolutional neural networks in vision tasks, but scaling laws specific to transformers and language modeling deserve dedicated investigation.
+
+2. Scaling Laws for Language Models
+
+We conduct experiments varying three key factors independently: (i) model size N, ranging from 1M to 13B parameters; (ii) dataset size D, from 1M to 300B tokens; and (iii) compute budget C, from 10^18 to 10^21 floating-point operations. Our hypothesis is that each factor exhibits a power-law relationship with final loss.
+
+3. Empirical Results
+
+We find that test loss follows the relationship L(N) ∝ N^(-α), where α ≈ 0.07 across multiple settings. Similarly, loss exhibits L(D) ∝ D^(-β) with β ≈ 0.10. Interestingly, these exponents suggest that increasing dataset size provides more benefit than simply increasing model size, contrary to some prior intuitions.
+
+4. Implications for Future Work
+
+Our scaling laws enable practitioners to make informed decisions about the optimal allocation of compute resources. With fixed compute budgets, we can now predict trade-offs between model size and training data requirements.
+
+References
+
+[1] Vaswani, A., et al. (2017). Attention is All You Need. NIPS 2017.
+[2] Brown, T. M., et al. (2020). Language Models are Few-Shot Learners. arXiv:2005.14165.`,
+    meta: ["ACM Computing Surveys", "Vol. 55, No. 2 (2023)", "DOI: 10.1145/3567890"],
+  },
+  Law: {
+    title: "International Harmonization of Data Privacy Regulations in the Digital Age",
+    body: `Abstract
+
+This paper undertakes a comparative analysis of major data privacy regulatory regimes including the GDPR, CCPA, and emerging national frameworks, examining their effectiveness in addressing the growing volume of personal data processing in the digital economy. We identify key structural divergences between legislative approaches and propose a set of minimum harmonization principles that could reduce compliance costs while strengthening individual rights protection globally.
+
+1. Introduction
+
+Data privacy has emerged as one of the central challenges of contemporary legal systems. Following the enforcement of the General Data Protection Regulation (GDPR) in May 2018, countries worldwide have accelerated the development of their own privacy frameworks. The divergence in regulatory approaches across jurisdictions has created significant compliance burdens for multinational enterprises while also producing inconsistent levels of protection for individuals.
+
+The fundamental tension in privacy regulation lies between enabling the free flow of information that underpins modern economic activity and protecting individuals from harms arising from unauthorized data collection, processing, and disclosure. Different legal systems have resolved this tension in markedly different ways, reflecting underlying cultural, historical, and constitutional commitments.
+
+2. Comparative Analysis of Major Frameworks
+
+2.1 The European Union GDPR Model
+The GDPR represents the most comprehensive and stringent data protection framework currently in force. It adopts a rights-based approach centered on data subject autonomy, requiring explicit and informed consent for most processing activities. Controllers must demonstrate a legitimate legal basis for processing, maintain detailed records of processing activities, and appoint Data Protection Officers in many circumstances.
+
+2.2 The United States Sectoral Approach
+The United States has historically relied on a sectoral model, with sector-specific statutes governing health information, financial data, and children's privacy, supplemented by the Federal Trade Commission's authority to prohibit unfair or deceptive trade practices. The CCPA represents a significant departure toward a more comprehensive model at the state level.
+
+3. Toward Regulatory Harmonization
+
+We propose three complementary pathways to greater international coherence: (i) adoption of baseline substantive standards covering core rights of access, correction, and deletion; (ii) mutual recognition agreements between jurisdictions meeting equivalency thresholds; and (iii) development of binding international instruments under the auspices of multilateral institutions.
+
+4. Conclusion
+
+While full regulatory convergence remains a distant prospect given deep structural differences in legal traditions and constitutional frameworks, targeted harmonization around minimum standards is both feasible and urgently needed to address the global nature of digital data flows.
+
+References
+
+[1] EDPB. (2021). Guidelines on the concepts of controller and processor in the GDPR. Official Journal of the EU.
+[2] Schwartz, P. M., & Solove, D. J. (2014). Reconciling personal information in the United States and European Union. California Law Review, 102(4), 877–916.
+[3] OECD. (2022). Recommendations of the Council on Cross-border Co-operation in the Enforcement of Laws Protecting Privacy.`,
+    meta: ["International Journal of Law and Information Technology", "Vol. 31, No. 3 (2023)", "DOI: 10.1093/ijlit/eaad012"],
+  },
+  Medicine: {
+    title: "Multi-Biomarker Panels for Early Detection of Non-Small Cell Lung Cancer via Liquid Biopsy",
+    body: `Abstract
+
+Lung cancer remains the leading cause of cancer-related mortality worldwide, largely due to late-stage diagnosis. This study developed and validated a multi-biomarker panel for early-stage non-small cell lung cancer (NSCLC) detection using liquid biopsy. In a retrospective cohort of 426 NSCLC patients and 324 healthy controls, the combined panel achieved an area under the receiver operating characteristic curve (AUC) of 0.89 (95% CI: 0.85–0.92), with 86% sensitivity and 91% specificity for stage I–II disease.
+
+1. Introduction
+
+Early detection of lung cancer dramatically improves patient outcomes; five-year survival rates for stage I disease exceed 70%, compared to less than 5% for stage IV. Current screening guidelines recommend low-dose computed tomography (LDCT) for high-risk individuals, yet LDCT carries radiation exposure risks, generates high false-positive rates, and is logistically unsuitable for population-scale screening.
+
+Blood-based biomarkers offer a minimally invasive alternative. Advances in liquid biopsy technology now permit sensitive quantification of circulating tumor DNA (ctDNA), circulating tumor cells (CTCs), and serum proteins that may reflect early oncogenic events. However, individual biomarkers lack sufficient sensitivity and specificity, motivating the development of integrated multi-analyte panels.
+
+2. Materials and Methods
+
+2.1 Study Population
+Serum samples were prospectively collected from three tertiary academic medical centers between January 2019 and December 2022. The NSCLC cohort (n = 426) comprised histologically confirmed cases with stages I through IV disease. Healthy controls (n = 324) were age- and sex-matched individuals with no history of malignancy.
+
+2.2 Biomarker Quantification
+ctDNA was quantified using droplet digital PCR targeting hotspot mutations in EGFR, KRAS, and TP53. Serum protein levels were measured by multiplexed immunoassay for eight analytes: CEA, CYFRA 21-1, NSE, ProGRP, and four candidate proteins identified in the discovery cohort through mass spectrometry-based proteomics.
+
+3. Results
+
+The eight-analyte panel demonstrated superior discriminatory performance compared to any single marker. Sensitivity for early-stage (I–II) disease was 86%, with specificity of 91%, yielding a positive predictive value of 88% at a disease prevalence of 10%. Subgroup analysis confirmed consistent performance across histological subtypes including adenocarcinoma and squamous cell carcinoma.
+
+4. Discussion
+
+These findings support the clinical utility of integrated liquid biopsy panels for lung cancer detection. The combination of ctDNA and protein biomarkers captures complementary aspects of tumor biology, improving sensitivity relative to protein-only approaches while maintaining high specificity. Prospective validation in a screening-naïve population is warranted prior to clinical deployment.
+
+References
+
+[1] Siegel, R. L., Miller, K. D., & Jemal, A. (2023). Cancer statistics, 2023. CA: A Cancer Journal for Clinicians, 73(1), 17–48.
+[2] Cohen, J. D., et al. (2018). Detection and localization of surgically resectable cancers with a multi-analyte blood test. Science, 359(6378), 926–930.
+[3] Birse, C. E., et al. (2015). Development and validation of a serum-based lung cancer biomarker panel. PLOS ONE, 10(3), e0116077.`,
+    meta: ["Journal of Clinical Oncology", "Vol. 41, No. 12 (2023)", "DOI: 10.1200/JCO.22.02871"],
+  },
+  Economics: {
+    title: "Post-Pandemic Supply Chain Restructuring and Economic Resilience: Evidence from OECD Nations",
+    body: `Abstract
+
+The COVID-19 pandemic exposed profound fragilities in globally integrated supply chains, triggering widespread shortages and inflationary pressures. This paper examines post-pandemic supply chain restructuring strategies and their macroeconomic consequences across 28 OECD member states and 12 emerging economies over 2019–2023. Using a panel vector autoregression framework, we find that nearshoring and diversification policies significantly increased short-run production costs but improved medium-term resilience metrics including import substitution capacity and sectoral employment stability.
+
+1. Introduction
+
+Prior to 2020, global supply chain optimization proceeded under the assumption that geopolitical risks, pandemic shocks, and climate disruptions were tail events with negligible expected costs. Just-in-time inventory practices and geographic concentration of production in low-cost regions yielded efficiency gains that underpinned two decades of low consumer price inflation in advanced economies. The pandemic demonstrated decisively that this calculus was flawed.
+
+The collapse of semiconductor supply in 2020–2021 caused production halts in the automotive sector worth an estimated $210 billion in lost revenues. Container shipping costs rose sixfold at peak disruption. These shocks accelerated a policy shift toward strategic autonomy and supply chain resilience that had already begun in the context of US-China trade tensions.
+
+2. Supply Chain Policy Responses
+
+2.1 Nearshoring and Friend-Shoring Trends
+The United States enacted the CHIPS and Science Act (2022) and the Inflation Reduction Act (2022), committing over $500 billion in subsidies to domestic semiconductor and clean energy manufacturing. The European Union's European Chips Act similarly targeted 20% global semiconductor market share by 2030.
+
+2.2 Inventory Buffering
+Firms across multiple sectors shifted from just-in-time to just-in-case inventory strategies, accepting higher carrying costs in exchange for reduced vulnerability to supply disruptions. Survey evidence indicates that median inventory-to-sales ratios in manufacturing rose by 18% between 2019 and 2023.
+
+3. Macroeconomic Consequences
+
+Our panel VAR estimates indicate that a one standard deviation increase in nearshoring intensity is associated with a 0.4 percentage point increase in domestic manufacturing employment over a two-year horizon, but also a 0.6 percentage point increase in producer price inflation during the transition period. These effects are heterogeneous across sectors, with capital-intensive industries exhibiting larger employment but also larger price effects.
+
+4. Conclusion
+
+Supply chain resilience policies entail genuine short-run costs that policymakers must weigh against the long-run benefits of reduced vulnerability to external shocks. International coordination on minimum standards for strategic stockpiles and supply chain transparency could reduce inefficient duplication of resilience investments across countries.
+
+References
+
+[1] Grossman, G. M., & Helpman, E. (2021). When tariffs disrupt global supply chains. American Economic Review, 111(1), 195–227.
+[2] OECD. (2023). Building Supply Chain Resilience: Policies and Strategies. OECD Trade Policy Papers, No. 275.
+[3] Freund, C., et al. (2023). Is US trade policy reshaping global supply chains? NBER Working Paper No. 31368.`,
+    meta: ["Journal of International Economics", "Vol. 143 (2023)", "DOI: 10.1016/j.jinteco.2023.103748"],
+  },
+  Physics: {
+    title: "Observation of Room-Temperature Superconductivity in Hydrogen-Rich Clathrate Compounds Under Moderate Pressure",
+    body: `Abstract
+
+The discovery of superconductivity at ambient or near-ambient conditions represents one of the most sought-after goals in condensed matter physics. We report the observation of a superconducting transition at 287 K in a ternary hydrogen-rich clathrate compound synthesized under a pressure of 1.5 GPa — a pressure regime accessible with standard diamond anvil cell equipment. Resistance measurements, magnetic susceptibility, and isotope effect data are consistent with conventional phonon-mediated Cooper pairing. These results represent a significant step toward practical room-temperature superconductivity.
+
+1. Introduction
+
+Conventional BCS superconductors achieve superconductivity through electron-phonon coupling, with the critical temperature Tc bounded by the Debye frequency of the lattice. Hydrogen, as the lightest element, has the highest Debye frequency and is therefore a natural candidate for high-temperature superconductivity. Theoretical predictions by Ashcroft (1968, 2004) suggested that metallic hydrogen and hydrogen-rich compounds could exhibit superconducting transitions at or above room temperature.
+
+Experimental confirmation of these predictions has been partial. Sulfur hydride (H₃S) was reported to superconduct at 203 K under 150 GPa, and lanthanum decahydride (LaH₁₀) at 250 K under 170 GPa. These pressures exceed what is achievable in practical applications, motivating the search for superconducting hydrides stable at lower pressures.
+
+2. Synthesis and Characterization
+
+The compound was synthesized by laser heating a mixture of precursor elements in a diamond anvil cell at pressures between 1.2 and 2.0 GPa. X-ray diffraction confirmed a clathrate-type crystal structure with hydrogen atoms occupying cage sites surrounding metal centers. The stoichiometry was determined to be MH₁₈ where M denotes the metal dopant.
+
+3. Superconducting Properties
+
+The resistivity transition was sharp, occurring over a 3 K window centered at 287 K. Application of a magnetic field suppressed the transition systematically, consistent with a type-II superconductor with an upper critical field Hc2 of approximately 90 T extrapolated to zero temperature. The isotope coefficient α = 0.48 ± 0.04 is consistent with phonon-mediated pairing.
+
+4. Theoretical Interpretation
+
+Density functional theory calculations yield a high phonon frequency and strong electron-phonon coupling constant λ ≈ 2.3, predicting Tc in the range 270–310 K via the McMillan-Allen-Dynes formula, consistent with experiment.
+
+References
+
+[1] Drozdov, A. P., et al. (2015). Conventional superconductivity at 203 kelvin at high pressures in the sulfur hydride system. Nature, 525, 73–76.
+[2] Somayazulu, M., et al. (2019). Evidence for superconductivity above 260 K in lanthanum superhydride at megabar pressures. Physical Review Letters, 122(2), 027001.
+[3] Pickard, C. J., Errea, I., & Eremets, M. I. (2020). Superconducting hydrides under pressure. Annual Review of Condensed Matter Physics, 11, 57–76.`,
+    meta: ["Physical Review Letters", "Vol. 131, No. 8 (2023)", "DOI: 10.1103/PhysRevLett.131.086002"],
+  },
+  Psychology: {
+    title: "Cognitive Reappraisal and Neural Correlates of Emotion Regulation in Adolescent Populations",
+    body: `Abstract
+
+Emotion regulation capacity undergoes substantial development during adolescence, yet the neural mechanisms underpinning this maturation remain incompletely characterized. This study examined cognitive reappraisal — a high-order regulatory strategy involving reinterpretation of emotional stimuli — in a sample of 112 adolescents (ages 13–17) and 98 adults (ages 25–40) using functional magnetic resonance imaging (fMRI). Adolescents showed diminished prefrontal engagement and greater amygdala reactivity relative to adults during reappraisal trials, with developmental differences partially mediated by maturation of prefrontal-subcortical connectivity.
+
+1. Introduction
+
+The ability to regulate emotional responses is fundamental to mental health and social functioning. Failures of emotion regulation are implicated across a range of psychopathologies including depression, anxiety disorders, and borderline personality disorder, with onset frequently occurring during adolescence. Understanding normative developmental trajectories in emotion regulation is therefore critical for identifying at-risk individuals and designing targeted interventions.
+
+Cognitive reappraisal involves voluntarily changing one's interpretation of an emotionally significant situation to alter its emotional impact. Neuroimaging studies in adults have consistently identified a reappraisal network encompassing the dorsolateral and ventrolateral prefrontal cortices, anterior cingulate cortex, and their top-down projections to the amygdala.
+
+2. Methods
+
+2.1 Participants
+Adolescent participants (n = 112, mean age 15.3 ± 1.4 years) were recruited from secondary schools. Adult controls (n = 98, mean age 31.7 ± 4.2 years) were recruited from the community. Exclusion criteria included current psychiatric diagnosis, psychotropic medication use, and standard MRI contraindications.
+
+2.2 Emotion Regulation Task
+Participants viewed negative emotional images and were cued to either maintain their initial emotional response or reappraise the image using a provided reinterpretation strategy. Subjective emotional intensity was rated on a nine-point scale following each trial.
+
+3. Results
+
+Behavioral analyses revealed that both groups successfully reduced negative affect through reappraisal; however, reappraisal success was significantly lower in adolescents (Cohen's d = 0.61, p < 0.001). Neuroimaging contrasts showed that adult reappraisal was associated with greater activation in bilateral dlPFC and vlPFC and greater functional connectivity between vlPFC and bilateral amygdala compared to adolescents.
+
+4. Discussion
+
+These findings are consistent with a neurodevelopmental model in which the protracted maturation of prefrontal cortex through late adolescence limits the efficiency of top-down emotion regulation. The identified prefrontal-amygdala connectivity differences may represent a meaningful biomarker for regulatory capacity and vulnerability to internalizing disorders.
+
+References
+
+[1] Gross, J. J. (2015). Emotion regulation: Current status and future prospects. Psychological Inquiry, 26(1), 1–26.
+[2] Casey, B. J., Heller, A. S., Gee, D. G., & Cohen, A. O. (2019). Development of the emotional brain. Neuroscience Letters, 693, 29–34.
+[3] Silvers, J. A., et al. (2012). Age-related differences in emotional reactivity, regulation, and rejection sensitivity in adolescence. Emotion, 12(6), 1235–1247.`,
+    meta: ["Developmental Cognitive Neuroscience", "Vol. 59 (2023)", "DOI: 10.1016/j.dcn.2023.101189"],
+  },
+  Environment: {
+    title: "Carbon Sequestration Capacity of Restored Coastal Wetlands: A Meta-Analysis of Blue Carbon Stocks",
+    body: `Abstract
+
+Coastal wetlands — encompassing mangroves, salt marshes, and seagrass meadows — sequester carbon at rates far exceeding those of terrestrial forests per unit area, yet they are among the most threatened ecosystems globally. This meta-analysis synthesizes carbon stock and sequestration rate data from 389 restored coastal wetland sites across 47 countries, assessing the effectiveness of restoration in recovering blue carbon storage capacity. Restored sites achieved on average 68% of reference site carbon stocks within 20 years of restoration, with recovery trajectories strongly influenced by restoration method, hydrogeological setting, and initial soil carbon legacy.
+
+1. Introduction
+
+The global climate crisis has prompted intensified interest in nature-based solutions to carbon removal. Coastal blue carbon ecosystems offer exceptional carbon sequestration potential because organic matter is preserved under anaerobic waterlogged conditions, resulting in millennial-scale carbon burial rates that can reach 200 g C m⁻² yr⁻¹ — an order of magnitude above typical terrestrial ecosystem rates. Mangrove forests alone are estimated to store 6.4 Pg of organic carbon globally.
+
+Despite their importance, coastal wetlands have been reduced by 25–50% over the past century through drainage for agriculture, urban development, and aquaculture. Restoration programs have expanded substantially since 2010, motivated by both biodiversity and climate objectives, yet evidence for the rate and completeness of blue carbon recovery remains fragmented.
+
+2. Data Sources and Methods
+
+We compiled data from peer-reviewed literature published between 2000 and 2023, identifying 389 study sites reporting carbon stock or accumulation rate data for restored mangroves, salt marshes, or seagrass beds. Mixed-effects models accounted for variation in restoration age, ecosystem type, climate zone, and restoration technique.
+
+3. Results
+
+Above-ground carbon stocks in restored mangroves recovered to 71% of reference values after 20 years (95% CI: 63–79%), while soil organic carbon, which constitutes the dominant blue carbon pool, recovered more slowly, reaching 54% of reference values over the same period. Salt marsh restoration showed faster recovery trajectories (78% within 15 years), while seagrass restoration exhibited highest variability and slowest mean recovery.
+
+4. Policy Implications
+
+These results support the inclusion of coastal wetland restoration in national climate mitigation portfolios and voluntary carbon markets, while highlighting the importance of accounting for the time lag between restoration and full carbon stock recovery in any carbon crediting framework.
+
+References
+
+[1] Duarte, C. M., et al. (2013). The role of coastal plant communities for climate change mitigation and adaptation. Nature Climate Change, 3(11), 961–968.
+[2] Macreadie, P. I., et al. (2019). The future of blue carbon science. Nature Communications, 10(1), 3998.
+[3] IPCC. (2022). Climate Change 2022: Mitigation of Climate Change. Contribution of Working Group III.`,
+    meta: ["Nature Climate Change", "Vol. 13, No. 9 (2023)", "DOI: 10.1038/s41558-023-01782-w"],
+  },
+  History: {
+    title: "Trade Networks and Knowledge Transfer in the Medieval Islamic World: A Quantitative Reassessment",
+    body: `Abstract
+
+The medieval Islamic world (circa 700–1400 CE) sustained an extraordinarily extensive network of long-distance trade linking the Mediterranean basin, sub-Saharan Africa, Central Asia, the Indian subcontinent, and maritime Southeast Asia. This paper employs network analysis techniques applied to a newly compiled database of 2,400 documented commercial and intellectual exchanges to reassess the relationship between mercantile connectivity and the diffusion of scientific and technological knowledge across this network. We find strong positive correlation between commercial hub centrality and the density of scholarly citation networks, suggesting that trade routes functioned as critical conduits for intellectual as well as material exchange.
+
+1. Introduction
+
+The question of how knowledge travels across political and cultural boundaries is one of enduring significance for historians of science and technology. The medieval Islamic world presents an especially rich case study, having served as a primary channel through which Greek philosophical and scientific texts were preserved, translated, and augmented before transmission to medieval Europe through the Iberian Peninsula and Sicily.
+
+Existing historiography has largely treated commercial and intellectual exchange as parallel but separate processes. Merchants are acknowledged to have occasionally carried manuscripts alongside spices and textiles, but systematic quantitative evidence for the co-movement of goods and ideas has been lacking. The construction of relational databases from Arabic geographic and biographical literature now makes such analysis feasible for the first time.
+
+2. Data and Network Construction
+
+The database draws on the Kitab al-Masalik wa al-Mamalik tradition of geographic writing, commercial handbooks from the Cairo Geniza, and prosopographic data from the Tabaqat biographical dictionaries. Nodes represent cities with documented commercial activity; edges represent attested trade routes weighted by frequency of mention. A separate citation network was constructed from the isnad chains of scientific and mathematical texts circulating in the period.
+
+3. Network Analysis Results
+
+Centrality measures (betweenness, eigenvector) computed for the commercial network align closely with known centers of Islamic intellectual life including Baghdad, Cairo, Cordoba, Samarkand, and Nishapur. Bivariate correlation between commercial centrality and citation density yields r = 0.71 (p < 0.001). Importantly, cities entering the trade network through new route formation show increased scholarly output within one to two generations, suggesting a causal relationship.
+
+4. Conclusion
+
+These results offer quantitative support for the hypothesis that commercial integration drove intellectual exchange in the medieval Islamic world. The implications extend beyond Islamic history to general theories of how knowledge diffuses through pre-modern societies lacking dedicated institutional channels for scientific communication.
+
+References
+
+[1] Abu-Lughod, J. L. (1989). Before European Hegemony: The World System AD 1250–1350. Oxford University Press.
+[2] Goitein, S. D. (1967). A Mediterranean Society, Vol. I: Economic Foundations. University of California Press.
+[3] Gutas, D. (1998). Greek Thought, Arabic Culture: The Graeco-Arabic Translation Movement in Baghdad. Routledge.`,
+    meta: ["Journal of World History", "Vol. 34, No. 2 (2023)", "DOI: 10.1353/jwh.2023.0014"],
+  },
+};
+
 export function UrlInput({ onSubmit, isLoading, paperTitle, result }: Props) {
   const [value, setValue] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -79,13 +352,14 @@ export function UrlInput({ onSubmit, isLoading, paperTitle, result }: Props) {
     onSubmit(trimmed);
   }
 
-  const displayTitle = result ? result.title : paperTitle;
+  const previewPaper = selectedCategory ? CATEGORY_PAPERS[selectedCategory] : null;
+  const displayTitle = result ? result.title : (previewPaper?.title ?? paperTitle);
   const paragraphs = result
     ? result.content.split('\n\n').map((p) => p.trim()).filter(Boolean)
-    : PAPER_BODY.split('\n\n').map((p) => p.trim()).filter(Boolean);
+    : (previewPaper?.body ?? PAPER_BODY).split('\n\n').map((p) => p.trim()).filter(Boolean);
   const metaLine = result
     ? [new URL(result.url).hostname, `${result.wordCount.toLocaleString()} words`, new Date(result.fetchedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })]
-    : ['Journal of Artificial Intelligence Research', 'Vol. 47, No. 3 (2024)', 'DOI: 10.1613/jair.1.xxxxx'];
+    : (previewPaper?.meta ?? ['Journal of Artificial Intelligence Research', 'Vol. 47, No. 3 (2024)', 'DOI: 10.1613/jair.1.xxxxx']);
 
   return (
     <section className="retrieve-section">
@@ -103,6 +377,19 @@ export function UrlInput({ onSubmit, isLoading, paperTitle, result }: Props) {
           {isLoading ? 'Retrieving...' : 'Retrieve'}
         </button>
       </form>
+
+      <div className="category-chips">
+        {Object.keys(CATEGORY_PAPERS).map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            className={`category-chip${selectedCategory === cat ? ' active' : ''}`}
+            onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       <div className="paper-preview">
         <div className="paper-preview-header">

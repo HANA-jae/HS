@@ -74,6 +74,18 @@ export default function App() {
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}
       </main>
+
+      <footer className="app-footer">
+        <div className="footer-inner">
+          <span className="footer-brand">JOURNAL TIMES</span>
+          <nav className="footer-nav">
+            <a href="#about">About</a>
+            <a href="#privacy">Privacy</a>
+            <a href="#contact">Contact</a>
+          </nav>
+          <span className="footer-copy">© 2024 Journal Times. All rights reserved.</span>
+        </div>
+      </footer>
     </div>
   );
 }
