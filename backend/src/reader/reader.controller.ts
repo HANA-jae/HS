@@ -16,4 +16,15 @@ export class ReaderController {
     this.logger.log(`Received fetch request for URL: ${dto.url}`);
     return this.readerService.fetchAndParse(dto.url);
   }
+
+  // 🧪 임시 테스트: finalUrl만 추출
+  @Post('test-final-url')
+  @HttpCode(HttpStatus.OK)
+  async testFinalUrl(
+    @Body() dto: FetchUrlDto,
+  ): Promise<{ initialUrl: string; finalUrl: string }> {
+    console.log(`[CONTROLLER] Test finalUrl request for URL: ${dto.url}`);
+    this.logger.log(`Test finalUrl request for URL: ${dto.url}`);
+    return this.readerService.fetchFinalUrl(dto.url);
+  }
 }
