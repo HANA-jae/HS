@@ -19,6 +19,18 @@ const NOISE_TAGS = [
 export class ReaderService {
   private readonly logger = new Logger(ReaderService.name);
 
+  // User-Agent 랜덤화
+  private readonly USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  ];
+
+  private getRandomUserAgent(): string {
+    return this.USER_AGENTS[Math.floor(Math.random() * this.USER_AGENTS.length)];
+  }
+
   // 🧪 임시 테스트: finalUrl 추출용
   async fetchFinalUrl(url: string): Promise<{ initialUrl: string; finalUrl: string }> {
     this.logger.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
@@ -60,13 +72,67 @@ export class ReaderService {
       this.logger.log(`   🌐 브라우저 실행...`);
       const browser = await chromium.launch({
         headless: true,
-        args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'],
+        args: [
+          '--disable-blink-features=AutomationControlled',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+        ],
       });
 
       try {
+        const userAgent = this.getRandomUserAgent();
+        this.logger.log(`   🎲 User-Agent: ${userAgent.substring(0, 60)}...`);
+
         const context = await browser.newContext({
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          userAgent,
+          locale: 'ko-KR',
+          timezoneId: 'Asia/Seoul',
+          viewport: { width: 1920, height: 1080 },
+          extraHTTPHeaders: {
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+
+        // ⭐ Stealth: Fingerprint 랜덤화 (방법 C)
+        this.logger.log(`   🔒 Stealth 코드 주입 중...`);
+        await context.addInitScript(() => {
+          // 1. navigator.webdriver 패치
+          Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined,
+          });
+          delete (window as any).__playwright;
+          delete (window as any).__pw_manual;
+
+          // 2. navigator.plugins 채우기
+          Object.defineProperty(navigator, 'plugins', {
+            get: () => [
+              { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+              { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai' },
+              { name: 'Native Client', filename: 'internal-nacl-plugin' },
+            ],
+          });
+
+          // 3. navigator.languages
+          Object.defineProperty(navigator, 'languages', {
+            get: () => ['ko-KR', 'ko', 'en-US', 'en'],
+          });
+
+          // 4. WebGL fingerprint 덮어쓰기
+          const getParam = WebGLRenderingContext.prototype.getParameter;
+          WebGLRenderingContext.prototype.getParameter = function (p: number) {
+            if (p === 37445) return 'Intel Inc.';
+            if (p === 37446) return 'Intel Iris OpenGL Engine';
+            return getParam.call(this, p);
+          };
+
+          // 5. screen 해상도
+          Object.defineProperty(screen, 'width', { get: () => 1920 });
+          Object.defineProperty(screen, 'height', { get: () => 1080 });
+          Object.defineProperty(screen, 'availWidth', { get: () => 1920 });
+          Object.defineProperty(screen, 'availHeight', { get: () => 1040 });
+          Object.defineProperty(screen, 'colorDepth', { get: () => 24 });
         });
 
         const page = await context.newPage();
@@ -190,13 +256,64 @@ export class ReaderService {
         args: [
           '--disable-blink-features=AutomationControlled',
           '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
         ],
       });
 
       try {
+        const userAgent = this.getRandomUserAgent();
+        this.logger.log(`   🎲 User-Agent: ${userAgent.substring(0, 60)}...`);
+
         const context = await browser.newContext({
-          userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          userAgent,
+          locale: 'ko-KR',
+          timezoneId: 'Asia/Seoul',
+          viewport: { width: 1920, height: 1080 },
+          extraHTTPHeaders: {
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+
+        // ⭐ Stealth: Fingerprint 랜덤화 (방법 C)
+        this.logger.log(`   🔒 Stealth 코드 주입 중...`);
+        await context.addInitScript(() => {
+          // 1. navigator.webdriver 패치
+          Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined,
+          });
+          delete (window as any).__playwright;
+          delete (window as any).__pw_manual;
+
+          // 2. navigator.plugins 채우기
+          Object.defineProperty(navigator, 'plugins', {
+            get: () => [
+              { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+              { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai' },
+              { name: 'Native Client', filename: 'internal-nacl-plugin' },
+            ],
+          });
+
+          // 3. navigator.languages
+          Object.defineProperty(navigator, 'languages', {
+            get: () => ['ko-KR', 'ko', 'en-US', 'en'],
+          });
+
+          // 4. WebGL fingerprint 덮어쓰기
+          const getParam = WebGLRenderingContext.prototype.getParameter;
+          WebGLRenderingContext.prototype.getParameter = function (p: number) {
+            if (p === 37445) return 'Intel Inc.';
+            if (p === 37446) return 'Intel Iris OpenGL Engine';
+            return getParam.call(this, p);
+          };
+
+          // 5. screen 해상도
+          Object.defineProperty(screen, 'width', { get: () => 1920 });
+          Object.defineProperty(screen, 'height', { get: () => 1080 });
+          Object.defineProperty(screen, 'availWidth', { get: () => 1920 });
+          Object.defineProperty(screen, 'availHeight', { get: () => 1040 });
+          Object.defineProperty(screen, 'colorDepth', { get: () => 24 });
         });
 
         const page = await context.newPage();
@@ -226,9 +343,12 @@ export class ReaderService {
         this.logger.log(`   📥 HTML 캡처 중...`);
         const html = await page.content();
 
-        const cookies = await context.cookies();
-        const hasCFCookie = cookies.some((c) => c.name === 'cf_clearance');
-        this.logger.log(`   ${hasCFCookie ? '✓' : 'ℹ️'} CF 쿠키: ${hasCFCookie ? '발견' : '미발견'}`);
+        // ⭐ 검증: 실제 페이지인지 텍스트 길이로 확인
+        const isRealPage = await page.evaluate(() => document.body.innerText.length > 1000);
+        this.logger.log(`   ${isRealPage ? '✓' : '⚠'} 실제 페이지: ${isRealPage ? '확인' : '텍스트 < 1000 chars'}`);
+
+        const cookies = (await context.cookies()).find((c) => c.name === 'cf_clearance');
+        this.logger.log(`   ${cookies ? '✓' : 'ℹ️'} CF 쿠키: ${cookies ? '발견' : '미발견'}`);
 
         await context.close();
         await browser.close();
